@@ -60,12 +60,12 @@ body {
 }
 
 /* 返回登录按钮 */
-.register-container button.back-btn {
+.register-container button.login-btn {
     background-color: #f0f0f0;
     color: #333;
 }
 
-.register-container button.back-btn:hover {
+.register-container button.login-btn:hover {
     background-color: #dcdcdc;
 }
 

@@ -7,64 +7,76 @@ body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #6a11cb, #2575fc);
-    color: #333;
 }
 
 /* 登录容器 */
 .login-container {
     background-color: #fff;
-    padding: 40px 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    width: 350px;
+    padding: 50px 40px;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    width: 380px;
     text-align: center;
+    position: relative;
+    animation: fadeIn 0.8s ease;
 }
 
 /* 标题 */
 .login-container h2 {
-    margin-bottom: 25px;
+    margin-bottom: 30px;
     color: #333;
+    font-size: 28px;
+    font-weight: 600;
 }
 
 /* 输入框 */
 .login-container input {
     width: 100%;
-    padding: 12px 15px;
-    margin: 10px 0;
-    border-radius: 8px;
+    padding: 14px 15px;
+    margin: 12px 0;
+    border-radius: 10px;
     border: 1px solid #ccc;
     font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.login-container input:focus {
+    border-color: #2575fc;
+    box-shadow: 0 0 8px rgba(37,117,252,0.3);
+    outline: none;
 }
 
 /* 按钮 */
 .login-container button {
     width: 100%;
-    padding: 12px;
-    margin-top: 10px;
+    padding: 14px;
+    margin-top: 12px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 16px;
     cursor: pointer;
     transition: 0.3s;
 }
 
 /* 登录按钮 */
-.login-container button.login-btn {
+.login-btn {
     background-color: #2575fc;
-    color: white;
+    color: #fff;
+    font-weight: 500;
 }
 
-.login-container button.login-btn:hover {
+.login-btn:hover {
     background-color: #0056d2;
 }
 
 /* 注册按钮 */
-.login-container button.register-btn {
+.register-btn {
     background-color: #6c757d;
-    color: white;
+    color: #fff;
+    font-weight: 500;
 }
 
-.login-container button.register-btn:hover {
+.register-btn:hover {
     background-color: #5a6268;
 }
 
@@ -72,4 +84,19 @@ body {
 .login-container form {
     display: flex;
     flex-direction: column;
+}
+
+/* 错误提示 */
+.error-message {
+    margin-top: 15px;
+    color: #d93025;
+    font-weight: 500;
+    font-size: 14px;
+    text-align: left;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(-20px);}
+    to {opacity: 1; transform: translateY(0);}
 }
