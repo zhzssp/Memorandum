@@ -5,10 +5,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Table;
 
 // Spring 启动时，会扫描所有带 @Entity 的类，
 // 并根据属性自动在数据库中生成对应的表结构
 @Entity
+@Table(name="user")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

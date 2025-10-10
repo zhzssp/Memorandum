@@ -35,10 +35,4 @@ public class AuthController {
     public String loginForm() {
         return "login";
     }
-
-    @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password) {
-        // 这里的登录逻辑通常由Spring Security处理，实际应用中不需要手动实现
-        return "redirect:/dashboard"; // 登录成功后重定向到dashboard页面
-    }
 }

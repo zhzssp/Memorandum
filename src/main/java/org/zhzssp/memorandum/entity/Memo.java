@@ -2,8 +2,10 @@ package org.zhzssp.memorandum.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name="memo")
 public class Memo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
