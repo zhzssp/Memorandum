@@ -1,0 +1,76 @@
+/* 页面背景 */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(120deg, #ff758c, #ff7eb3);
+    color: #333;
+}
+
+/* 注册容器 */
+.register-container {
+    background-color: #ffffffdd; /* 半透明白色 */
+    padding: 40px 35px;
+    border-radius: 15px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    width: 360px;
+    text-align: center;
+}
+
+/* 标题 */
+.register-container h2 {
+    margin-bottom: 25px;
+    font-size: 28px;
+    color: #ff4e6d;
+}
+
+/* 输入框样式 */
+.register-container input {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: 1px solid #ff7eb3;
+    font-size: 16px;
+}
+
+/* 按钮样式 */
+.register-container button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* 注册按钮 */
+.register-container button.register-btn {
+    background-color: #ff4e6d;
+    color: white;
+}
+
+.register-container button.register-btn:hover {
+    background-color: #e13e5a;
+}
+
+/* 返回登录按钮 */
+.register-container button.back-btn {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.register-container button.back-btn:hover {
+    background-color: #dcdcdc;
+}
+
+/* 表单布局 */
+.register-container form {
+    display: flex;
+    flex-direction: column;
+}

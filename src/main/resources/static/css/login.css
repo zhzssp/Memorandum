@@ -1,0 +1,75 @@
+/* 页面背景和字体 */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #333;
+}
+
+/* 登录容器 */
+.login-container {
+    background-color: #fff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 350px;
+    text-align: center;
+}
+
+/* 标题 */
+.login-container h2 {
+    margin-bottom: 25px;
+    color: #333;
+}
+
+/* 输入框 */
+.login-container input {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+/* 按钮 */
+.login-container button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* 登录按钮 */
+.login-container button.login-btn {
+    background-color: #2575fc;
+    color: white;
+}
+
+.login-container button.login-btn:hover {
+    background-color: #0056d2;
+}
+
+/* 注册按钮 */
+.login-container button.register-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.login-container button.register-btn:hover {
+    background-color: #5a6268;
+}
+
+/* 表单布局 */
+.login-container form {
+    display: flex;
+    flex-direction: column;
+}
