@@ -9,12 +9,13 @@ function createWindow() {
         height: 600,
         webPreferences: {
             nodeIntegration: true,
+            // __dirname表示当前文件所在目录
             preload: path.join(__dirname, 'preload.js')
         }
     });
 
-    // 加载 HTML 文件
-    win.loadURL('http://172.19.56.143:8080');  // Spring Boot 后端在 8080 端口运行
+    // 加载 HTML 文件 -- 使用ngrok提供临时域名
+    win.loadURL('https://shella-subpolygonal-linsey.ngrok-free.dev');  // Spring Boot 后端在 8080 端口运行
 }
 
 // 当 Electron 初始化完成后调用
