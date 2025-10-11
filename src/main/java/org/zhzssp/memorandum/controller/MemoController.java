@@ -36,6 +36,7 @@ public class MemoController {
 
     @PostMapping("/memo/add")
     public String addMemo(@RequestParam String title, @RequestParam String description, @RequestParam String deadline, Principal principal) {
+        // principal对象包含当前登录用户的信息
         User user = userRepository.findByUsername(principal.getName()).orElseThrow();
         Memo memo = new Memo();
         memo.setTitle(title);

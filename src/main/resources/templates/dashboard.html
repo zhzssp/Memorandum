@@ -1,9 +1,24 @@
-<html xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Memos</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
 
-<h2>Your Memos</h2>
-<ul>
-    <li th:each="memo : ${memos}">
-        <span th:text="${memo.title}"></span> - <span th:text="${memo.deadline}"></span>
-    </li>
-</ul>
-<a href="/memo/add">Add Memo</a>
+<body>
+<div class="container">
+    <h2>Your Memos</h2>
+
+    <ul>
+        <!-- 将接收到的model属性momos, 通过th遍历并展示出来 -->
+        <li th:each="memo : ${memos}">
+            <span class="title" th:text="${memo.title}"></span>
+            <span class="deadline" th:text="${memo.deadline}"></span>
+        </li>
+    </ul>
+
+    <a href="/memo/add" class="add-btn">＋ Add Memo</a>
+</div>
+</body>
+</html>

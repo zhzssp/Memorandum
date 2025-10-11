@@ -1,0 +1,88 @@
+/* 页面整体 */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* 表单容器 */
+.memo-form-container {
+    background-color: #ffffffdd; /* 半透明白 */
+    padding: 40px 35px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    width: 380px;
+    text-align: center;
+}
+
+/* 标题 */
+.memo-form-container h2 {
+    margin-bottom: 25px;
+    font-size: 26px;
+    color: #34495e;
+}
+
+/* 输入框 */
+.memo-form-container input[type="text"],
+.memo-form-container input[type="date"],
+.memo-form-container textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+/* 输入聚焦效果 */
+.memo-form-container input:focus,
+.memo-form-container textarea:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+}
+
+/* 文本框 */
+.memo-form-container textarea {
+    resize: none;
+    height: 100px;
+}
+
+/* 提交按钮 */
+.memo-form-container button {
+    width: 100%;
+    background: linear-gradient(90deg, #4a90e2, #50a7f6);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    font-weight: 600;
+}
+
+.memo-form-container button:hover {
+    background: linear-gradient(90deg, #3c7dd9, #4798f0);
+    transform: translateY(-2px);
+}
+
+/* 返回按钮 */
+.memo-form-container .back-btn {
+    display: inline-block;
+    margin-top: 15px;
+    color: #4a90e2;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+
+.memo-form-container .back-btn:hover {
+    color: #2c6cd6;
+}
