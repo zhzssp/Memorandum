@@ -1,0 +1,20 @@
+{
+  "name": "Memorandum",
+  "version": "1.0.0",
+  "description": "This is a memorandum app based on Spring and Thymeleaf.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-packager . --overwrite --platform=win32 --arch=x64 --out=release/ --icon=icon.ico",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^38.2.2",
+    "electron-builder": "^26.0.12",
+    "electron-packager": "^15.5.2"
+  }
+}
