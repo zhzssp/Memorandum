@@ -15,7 +15,9 @@ function createWindow() {
     });
 
     // 加载 HTML 文件 -- 使用ngrok提供临时域名
-    win.loadURL('https://shella-subpolygonal-linsey.ngrok-free.dev');  // Spring Boot 后端在 8080 端口运行
+    // win.loadURL('https://shella-subpolygonal-linsey.ngrok-free.dev');
+    // Spring Boot 后端在 8080 端口运行
+    win.loadURL('http://localhost:8080');
 }
 
 // 当 Electron 初始化完成后调用
