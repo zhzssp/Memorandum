@@ -26,10 +26,12 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 先禁用CSRF以避免POST /register被拦截 -- 注意生产环境中需要启用CSRF保护
-                // .csrf(csrf -> csrf.disable())
+                // 保持CSRF保护，但为API端点配置豁免
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/user-logged-in", "/due-dates")
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/login", "/dashboard", "/css/**").permitAll() // 允许访问register和login页面
+                        .requestMatchers("/register", "/login", "/dashboard", "/css/**", "/user-logged-in", "/due-dates").permitAll() // 允许访问register和login页面
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login

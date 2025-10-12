@@ -50,9 +50,31 @@ public class MemoController {
     @GetMapping("/due-dates")
     @ResponseBody
     public List<Memo> viewDueDates(@NotNull Model model, Principal principal) {
-        User user = userRepository.findByUsername(principal.getName()).orElseThrow();
-        // 查找到的是所有任务，包括未完成和已完成的
-        return memoRepository.findByUser(user);
+        try {
+            System.out.println("=== Due Dates Debug Info ===");
+            System.out.println("Principal: " + principal);
+            System.out.println("Principal name: " + (principal != null ? principal.getName() : "null"));
+            
+            if (principal == null) {
+                System.out.println("Principal is null - user not authenticated");
+                return List.of(); // 返回空列表而不是抛出异常
+            }
+            
+            User user = userRepository.findByUsername(principal.getName()).orElseThrow();
+            List<Memo> memos = memoRepository.findByUser(user);
+            
+            System.out.println("Found " + memos.size() + " memos for user: " + user.getUsername());
+            memos.forEach(memo -> {
+                System.out.println("Memo: " + memo.getTitle() + ", Deadline: " + memo.getDeadline());
+            });
+            System.out.println("=============================");
+            
+            return memos;
+        } catch (Exception e) {
+            System.out.println("Error in viewDueDates: " + e.getMessage());
+            e.printStackTrace();
+            return List.of(); // 返回空列表而不是抛出异常
+        }
     }
 }
 

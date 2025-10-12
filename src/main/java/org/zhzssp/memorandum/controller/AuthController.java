@@ -49,9 +49,35 @@ public class AuthController {
     @GetMapping("/user-logged-in")
     @ResponseBody
     public boolean sendUserLoggedInNotification() {
-        // 会话超时或注销可能产生问题
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && authentication.isAuthenticated() && 
-               !authentication.getName().equals("anonymousUser");
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            
+            System.out.println("=== Authentication Debug Info ===");
+            System.out.println("Authentication object: " + authentication);
+            
+            if (authentication == null) {
+                System.out.println("Authentication is NULL");
+                return false;
+            }
+            
+            boolean isAuthenticated = authentication.isAuthenticated();
+            String username = authentication.getName();
+            String authType = authentication.getClass().getSimpleName();
+
+            // 出现anonymousUser的情况?
+            System.out.println("Authentication type: " + authType);
+            System.out.println("Is authenticated: " + isAuthenticated);
+            System.out.println("Username: " + username);
+            System.out.println("Is anonymous: " + username.equals("anonymousUser"));
+            System.out.println("Authorities: " + authentication.getAuthorities());
+            System.out.println("=================================");
+            
+            // return isAuthenticated && !username.equals("anonymousUser");
+            return isAuthenticated;
+        } catch (Exception e) {
+            System.out.println("Error in authentication check: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 }

@@ -3,6 +3,42 @@ const { app, BrowserWindow, ipcMain, Tray, nativeImage, Menu } = require('electr
 const path = require('path');
 const axios = require('axios');
 
+// 配置axios默认设置
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = 'http://localhost:8080';
+
+// 创建一个全局的cookie存储
+let sessionCookies = '';
+
+// 获取Electron窗口的cookie并设置到axios请求中
+async function getCookiesFromWindow() {
+    if (mainWindow) {
+        try {
+            const cookies = await mainWindow.webContents.session.cookies.get({});
+            console.log('All cookies from window:', cookies);
+
+            const relevantCookies = cookies
+                .filter(cookie =>
+                    (cookie.domain === 'localhost' || cookie.domain === '127.0.0.1' || cookie.domain === '') &&
+                    (cookie.name === 'JSESSIONID' || cookie.name.includes('SESSION'))
+                );
+
+            console.log('Relevant cookies:', relevantCookies);
+
+            const cookieString = relevantCookies
+                .map(cookie => `${cookie.name}=${cookie.value}`)
+                .join('; ');
+
+            console.log('Cookie string:', cookieString);
+            return cookieString;
+        } catch (error) {
+            console.error('Error getting cookies:', error);
+            return '';
+        }
+    }
+    return '';
+}
+
 let tray = null;
 let mainWindow = null;
 let intervalId = null; // 用于存储 setInterval 的 ID
@@ -15,7 +51,9 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             // __dirname表示当前文件所在目录
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            // 启用会话持久化
+            partition: 'persist:main'
         }
     });
 
@@ -81,6 +119,8 @@ function createTray() {
 
 // 发送桌面通知
 function sendDeadlineNotification(ddl_title, deadline) {
+    console.log(`Checking notification for task: ${ddl_title}, deadline: ${deadline}`);
+
     const now = new Date();
     const deadlineDate = new Date(deadline);
 
@@ -91,8 +131,11 @@ function sendDeadlineNotification(ddl_title, deadline) {
     const delta_time = deadlineDay - today; // 计算剩余天数，单位为毫秒
     const delta_days = Math.ceil(delta_time / (1000 * 60 * 60 * 24)); // 转换为天数
 
+    console.log(`Task: ${ddl_title}, Days remaining: ${delta_days}`);
+
     // 如果剩余时间少于等于 1 天，发送提醒通知
     if (delta_days <= 1 && delta_days >= 0) {
+        console.log(`Sending notification for task: ${ddl_title} (due in ${delta_days} days)`);
         const notification = new Notification({
             title: 'DDL提醒: ' + ddl_title,
             body: '你的DDL一天内到期啦!'
@@ -101,6 +144,7 @@ function sendDeadlineNotification(ddl_title, deadline) {
         notification.show();
     }
     else if (delta_days < 0) {
+        console.log(`Sending notification for overdue task: ${ddl_title} (overdue by ${Math.abs(delta_days)} days)`);
         const notification = new Notification({
             title: 'DDL提醒: ' + ddl_title,
             body: '你的DDL已经过期啦!'
@@ -108,43 +152,93 @@ function sendDeadlineNotification(ddl_title, deadline) {
 
         notification.show();
     }
-    else return;
+    else {
+        console.log(`Task ${ddl_title} is not due yet (${delta_days} days remaining)`);
+    }
 }
 
 // 检查DDL是否到期
 function checkTasksDue() {
+    console.log('checkTasksDue called');
+    console.log('Notification permission:', Notification.permission);
+
+    // 如果权限没有被授予，先请求权限
     if (Notification.permission !== 'granted') {
+        console.log('Requesting notification permission...');
         Notification.requestPermission().then(permission => {
+            console.log('Permission result:', permission);
             if (permission === 'granted') {
                 console.log("Notification permission granted");
+                // 权限获得后，继续执行通知的任务
+                performTaskCheck();
             } else {
                 console.log("Notification permission denied");
                 return; // 如果用户拒绝通知权限，则不继续执行
             }
+        }).catch(error => {
+            console.error('Error requesting notification permission:', error);
         });
+    } else {
+        console.log('Notification permission already granted');
+        // 权限已经授予，直接执行检查
+        performTaskCheck();
     }
-    console.log('Checking tasks due...');
-    axios.get('http://localhost:8080/due-dates') // 获取后端所有任务的到期信息
-        .then(response => {
-            const tasks = response.data;
+}
 
+// 执行任务检查的具体逻辑
+async function performTaskCheck() {
+    console.log('Checking tasks due...');
+    console.log('Notification permission status:', Notification.permission);
+
+    try {
+        const cookies = await getCookiesFromWindow();
+        console.log('Using cookies for due-dates:', cookies);
+
+        const response = await axios.get('/due-dates', {
+            withCredentials: true,
+            headers: cookies ? {
+                'Cookie': cookies
+            } : {}
+        });
+
+        const tasks = response.data;
+        console.log(`Found ${tasks.length} tasks:`, tasks);
+
+        if (tasks && tasks.length > 0) {
             tasks.forEach(task => {
+                console.log('Processing task:', task);
                 const deadline = new Date(task.deadline);
                 sendDeadlineNotification(task.title, deadline);
             });
-        })
-        .catch(error => {
-            console.error('Error fetching tasks:', error);
-        });
+        } else {
+            console.log('No tasks found');
+        }
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+        console.error('Error details:', error.response?.data || error.message);
+    }
 }
 
-function getLoginState() {
-    return axios.get('http://localhost:8080/user-logged-in')
-        .then(response => response.data)
-        .catch(error => {
-            console.error('Error fetching login state:', error);
-            return false;
+async function getLoginState() {
+    try {
+        // 更新全局cookie存储
+        sessionCookies = await getCookiesFromWindow();
+        console.log('Using cookies:', sessionCookies);
+
+        // 使用axios的默认配置，但确保cookie正确传递
+        const response = await axios.get('/user-logged-in', {
+            withCredentials: true,
+            headers: sessionCookies ? {
+                'Cookie': sessionCookies
+            } : {}
         });
+
+        console.log('Login state response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching login state:', error);
+        return false;
+    }
 }
 
 // 当 Electron 初始化完成后调用
