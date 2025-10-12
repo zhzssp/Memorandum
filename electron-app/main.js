@@ -37,66 +37,73 @@ function createWindow() {
 
 // 设置系统托盘
 function createTray() {
-  // 托盘图标路径
-  const iconPath = path.join(__dirname, 'icon.ico');
+    // 托盘图标路径
+    const iconPath = path.join(__dirname, 'icon.ico');
 
-  // 使用托盘图标
-  tray = new Tray(nativeImage.createFromPath(iconPath));
+    // 使用托盘图标
+    tray = new Tray(nativeImage.createFromPath(iconPath));
 
-  // 创建右键菜单
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: '打开备忘录',
-      click: () => {
-        if (mainWindow) {
-          mainWindow.show(); // 显示窗口
+    // 创建右键菜单
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: '打开备忘录',
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.show(); // 显示窗口
+                }
+            }
+        },
+        {
+            label: '退出',
+            click: () => {
+                mainWindow.destroy(); // 销毁窗口
+                tray.destroy(); // 销毁托盘图标
+                app.quit(); // 退出应用
+            }
         }
-      }
-    },
-    {
-      label: '退出',
-      click: () => {
-        mainWindow.destroy(); // 销毁窗口
-        tray.destroy(); // 销毁托盘图标
-        app.quit(); // 退出应用
-      }
-    }
-  ]);
+    ]);
 
-  // 右键点击托盘图标时，显示菜单
-  tray.setContextMenu(contextMenu);
+    // 右键点击托盘图标时，显示菜单
+    tray.setContextMenu(contextMenu);
 
-  // 单击托盘图标时，显示窗口
-  tray.on('click', () => {
-    if (mainWindow) {
-      mainWindow.show();
-    }
-  });
+    // 单击托盘图标时，显示窗口
+    tray.on('click', () => {
+        if (mainWindow) {
+            mainWindow.show();
+        }
+    });
 
-  // 鼠标右键点击托盘图标时，显示菜单
-  tray.on('right-click', () => {
-    tray.popUpContextMenu(contextMenu);
-  });
+    // 鼠标右键点击托盘图标时，显示菜单
+    tray.on('right-click', () => {
+        tray.popUpContextMenu(contextMenu);
+    });
 }
 
 // 发送桌面通知
 function sendDeadlineNotification(ddl_title, deadline) {
     const now = new Date();
-    const delta_time = deadline - now; // 计算剩余时间，单位为毫秒
+    const deadlineDate = new Date(deadline);
 
-    // 如果剩余时间少于 1 天，发送提醒通知
-    if (delta_time <= 86400000 && delta_time >= 0) { // 86400000 毫秒 = 1 天
+    // 暂时只比较年月日部分
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const deadlineDay = new Date(deadlineDate.getFullYear(), deadlineDate.getMonth(), deadlineDate.getDate());
+
+    const delta_time = deadlineDay - today; // 计算剩余天数，单位为毫秒
+    const delta_days = Math.ceil(delta_time / (1000 * 60 * 60 * 24)); // 转换为天数
+
+    // 如果剩余时间少于等于 1 天，发送提醒通知
+    if (delta_days <= 1 && delta_days >= 0) {
         const notification = new Notification({
             title: 'DDL提醒: ' + ddl_title,
-            body: '你的DDL一天内到期啦！'
+            body: '你的DDL一天内到期啦!'
         });
 
         notification.show();
     }
-    else if(delta_time < 0) {
+    else if (delta_days < 0) {
         const notification = new Notification({
             title: 'DDL提醒: ' + ddl_title,
-            body: '你的DDL已经过期啦！'
+            body: '你的DDL已经过期啦!'
         });
 
         notification.show();
@@ -120,7 +127,6 @@ function checkTasksDue() {
     axios.get('http://localhost:8080/due-dates') // 获取后端所有任务的到期信息
         .then(response => {
             const tasks = response.data;
-            const now = new Date();
 
             tasks.forEach(task => {
                 const deadline = new Date(task.deadline);
@@ -133,7 +139,7 @@ function checkTasksDue() {
 }
 
 function getLoginState() {
-        return axios.get('http://localhost:8080/user-logged-in')
+    return axios.get('http://localhost:8080/user-logged-in')
         .then(response => response.data)
         .catch(error => {
             console.error('Error fetching login state:', error);
@@ -145,16 +151,28 @@ function getLoginState() {
 app.whenReady().then(() => {
     createTray();
     createWindow();
-    // 获取登录状态并进行处理
-    getLoginState().then(isLoggedIn => {
-        console.log('User login state:', isLoggedIn);
-        // 用户登录成功后，启动定时检查 DDL 任务
-        if (isLoggedIn) {  // 防止重复设置 setInterval
-            intervalId = setInterval(() => {
-                checkTasksDue(); // 定期检查任务是否到期
-            }, 36000); // 每小时检查一次任务到期 -- ms
-        }
-    });
+
+    // 定期检查登录状态和DDL
+    const checkLoginAndDDL = () => {
+        getLoginState().then(isLoggedIn => {
+            console.log('Login state:', isLoggedIn);
+            mainWindow.webContents.send('log-message', isLoggedIn);
+
+            // 用户登录成功后，检查DDL任务
+            if (isLoggedIn) {
+                checkTasksDue();
+            }
+        }).catch(error => {
+            console.error('Error checking login state:', error);
+        });
+    };
+
+    // 立即检查一次
+    checkLoginAndDDL();
+
+    // 每30秒检查一次登录状态和DDL
+    intervalId = setInterval(checkLoginAndDDL, 30000);
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();

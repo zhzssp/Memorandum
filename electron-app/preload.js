@@ -5,5 +5,8 @@ const { ipcRenderer } = require('electron');
 window.addEventListener('DOMContentLoaded', () => {
     // 主进程可以根据消息做一些处理
     console.log("Renderer process loaded!");
-    ipcRenderer.send('message', 'Hello from the renderer');
+    // 监听主进程发送的日志消息
+    ipcRenderer.on('log-message', (event, message) => {
+        console.log('Received log from main process:', message);
+    });
 });

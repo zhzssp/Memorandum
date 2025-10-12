@@ -29,6 +29,10 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Spring Boot WebSocket 依赖
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    // Spring Boot Web依赖，包含WebSocket支持
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 }
 
 tasks.named('test') {

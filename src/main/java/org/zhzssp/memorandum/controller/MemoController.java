@@ -46,5 +46,13 @@ public class MemoController {
         memoRepository.save(memo);
         return "redirect:/dashboard";
     }
+
+    @GetMapping("/due-dates")
+    @ResponseBody
+    public List<Memo> viewDueDates(@NotNull Model model, Principal principal) {
+        User user = userRepository.findByUsername(principal.getName()).orElseThrow();
+        // 查找到的是所有任务，包括未完成和已完成的
+        return memoRepository.findByUser(user);
+    }
 }
 

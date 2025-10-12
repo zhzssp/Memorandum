@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.zhzssp.memorandum.service.CustomUserDetailsService;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,7 +34,7 @@ public class WebSecurityConfig {
                 )
                 .formLogin(login -> login
                         .loginPage("/login")
-                        .defaultSuccessUrl("/dashboard", true) // 控制登录成功后跳转到dashboard
+                        .defaultSuccessUrl("/dashboard", true) // 控制登录成功后跳转到dashboard, 同时设置登录状态为true
                         .permitAll()
                 )
                 .logout(logout -> logout.permitAll());

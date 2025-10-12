@@ -7,10 +7,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 
 @Controller
 public class AuthController {
-
     @Autowired
     private UserRepository userRepository;
 
@@ -43,5 +44,14 @@ public class AuthController {
     @GetMapping("/login")
     public String loginForm() {
         return "login";
+    }
+
+    @GetMapping("/user-logged-in")
+    @ResponseBody
+    public boolean sendUserLoggedInNotification() {
+        // 会话超时或注销可能产生问题
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.isAuthenticated() && 
+               !authentication.getName().equals("anonymousUser");
     }
 }
