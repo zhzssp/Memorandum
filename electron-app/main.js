@@ -1,15 +1,17 @@
 // ------------------------- 整个客户端的主入口，操控客户端的整体运行逻辑，同时与后端进行交互 -------------------------
 const { app, BrowserWindow, ipcMain, Tray, nativeImage, Menu } = require('electron');
 const path = require('path');
+const axios = require('axios');
 
 let tray = null;
 let mainWindow = null;
+let intervalId = null; // 用于存储 setInterval 的 ID
 
-// 创建窗口函数
+// 创建窗口
 function createWindow() {
     const win = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1000,
+        height: 800,
         webPreferences: {
             nodeIntegration: true,
             // __dirname表示当前文件所在目录
@@ -23,6 +25,8 @@ function createWindow() {
     win.loadURL('http://localhost:8080');
     // 绑定主窗口
     mainWindow = win;
+    // 打开开发者工具，查看控制台输出 -- 失效?
+    win.webContents.openDevTools();
 
     // 当窗口关闭时，将窗口隐藏到系统托盘 --> 只能在系统托盘关闭
     mainWindow.on('close', (event) => {
@@ -31,6 +35,7 @@ function createWindow() {
     });
 }
 
+// 设置系统托盘
 function createTray() {
   // 托盘图标路径
   const iconPath = path.join(__dirname, 'icon.ico');
@@ -51,7 +56,8 @@ function createTray() {
     {
       label: '退出',
       click: () => {
-        tray.destroy();
+        mainWindow.destroy(); // 销毁窗口
+        tray.destroy(); // 销毁托盘图标
         app.quit(); // 退出应用
       }
     }
@@ -73,13 +79,106 @@ function createTray() {
   });
 }
 
+// 发送桌面通知
+function sendDeadlineNotification(ddl_title, deadline) {
+    const now = new Date();
+    const delta_time = deadline - now; // 计算剩余时间，单位为毫秒
+
+    // 如果剩余时间少于 1 天，发送提醒通知
+    if (delta_time <= 86400000 && delta_time >= 0) { // 86400000 毫秒 = 1 天
+        const notification = new Notification({
+            title: 'DDL提醒: ' + ddl_title,
+            body: '你的DDL一天内到期啦！'
+        });
+
+        notification.show();
+    }
+    else if(delta_time < 0) {
+        const notification = new Notification({
+            title: 'DDL提醒: ' + ddl_title,
+            body: '你的DDL已经过期啦！'
+        });
+
+        notification.show();
+    }
+    else return;
+}
+
+// 检查DDL是否到期
+function checkTasksDue() {
+    if (Notification.permission !== 'granted') {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                console.log("Notification permission granted");
+            } else {
+                console.log("Notification permission denied");
+                return; // 如果用户拒绝通知权限，则不继续执行
+            }
+        });
+    }
+    console.log('Checking tasks due...');
+    axios.get('http://localhost:8080/due-dates') // 获取后端所有任务的到期信息
+        .then(response => {
+            const tasks = response.data;
+            const now = new Date();
+
+            tasks.forEach(task => {
+                const deadline = new Date(task.deadline);
+                sendDeadlineNotification(task.title, deadline);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching tasks:', error);
+        });
+}
+
+function getLoginState() {
+        return axios.get('http://localhost:8080/user-logged-in')
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error fetching login state:', error);
+            return false;
+        });
+}
+
 // 当 Electron 初始化完成后调用
 app.whenReady().then(() => {
     createTray();
     createWindow();
+    // 获取登录状态并进行处理
+    getLoginState().then(isLoggedIn => {
+        console.log('User login state:', isLoggedIn);
+        // 用户登录成功后，启动定时检查 DDL 任务
+        if (isLoggedIn) {  // 防止重复设置 setInterval
+            intervalId = setInterval(() => {
+                checkTasksDue(); // 定期检查任务是否到期
+            }, 36000); // 每小时检查一次任务到期 -- ms
+        }
+    });
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
         }
     });
 });
+
+// 退出应用时清理 setInterval
+app.on('before-quit', () => {
+    if (intervalId) {
+        clearInterval(intervalId); // 清除定时器
+    }
+});
+
+// 捕获未处理的同步错误
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    app.quit();  // 终止进程
+});
+
+// 捕获未处理的 Promise 拒绝
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at promise:', promise, 'reason:', reason);
+    app.quit();  // 终止进程
+});
+
+
