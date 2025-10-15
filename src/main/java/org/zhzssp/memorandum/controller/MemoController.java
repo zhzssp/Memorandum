@@ -7,7 +7,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +43,14 @@ public class MemoController {
         Memo memo = new Memo();
         memo.setTitle(title);
         memo.setDescription(description);
-        memo.setDeadline(LocalDate.parse(deadline));
+        // 前端 <input type="datetime-local"> 默认提交格式为 yyyy-MM-dd'T'HH:mm 或 yyyy-MM-dd'T'HH:mm:ss
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .appendPattern("yyyy-MM-dd'T'HH:mm")
+                .optionalStart()
+                .appendPattern(":ss")
+                .optionalEnd()
+                .toFormatter();
+        memo.setDeadline(LocalDateTime.parse(deadline, formatter));
         memo.setUser(user);
         memoRepository.save(memo);
         return "redirect:/dashboard";

@@ -28,7 +28,7 @@ body {
 
 /* 输入框 */
 .memo-form-container input[type="text"],
-.memo-form-container input[type="date"],
+.memo-form-container input[type="datetime-local"],
 .memo-form-container textarea {
     width: 100%;
     padding: 12px 15px;

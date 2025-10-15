@@ -1,7 +1,8 @@
 package org.zhzssp.memorandum.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Table;
 
 @Entity
@@ -13,7 +14,7 @@ public class Memo {
 
     private String title;
     private String description;
-    private LocalDate deadline;
+    private LocalDateTime deadline;
 
     @ManyToOne
     private User user;
@@ -25,7 +26,7 @@ public class Memo {
         this.title = title;
     }
 
-    public void setDeadline(LocalDate deadline) {
+    public void setDeadline(LocalDateTime deadline) {
         this.deadline = deadline;
     }
 
@@ -49,7 +50,7 @@ public class Memo {
         return title;
     }
 
-    public LocalDate getDeadline() {
+    public LocalDateTime getDeadline() {
         return deadline;
     }
 

@@ -122,39 +122,44 @@ function sendDeadlineNotification(ddl_title, deadline) {
     console.log(`Checking notification for task: ${ddl_title}, deadline: ${deadline}`);
 
     const now = new Date();
-    const deadlineDate = new Date(deadline);
+    const deadlineDate = new Date(deadline); // 接收 LocalDateTime 字符串或时间戳
 
-    // 暂时只比较年月日部分
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const deadlineDay = new Date(deadlineDate.getFullYear(), deadlineDate.getMonth(), deadlineDate.getDate());
+    const msUntilDue = deadlineDate.getTime() - now.getTime();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const threeDaysMs = 3 * oneDayMs;
 
-    const delta_time = deadlineDay - today; // 计算剩余天数，单位为毫秒
-    const delta_days = Math.ceil(delta_time / (1000 * 60 * 60 * 24)); // 转换为天数
+    console.log(`Task: ${ddl_title}, ms until due: ${msUntilDue}`);
+    let notification = null;
 
-    console.log(`Task: ${ddl_title}, Days remaining: ${delta_days}`);
-
-    // 如果剩余时间少于等于 1 天，发送提醒通知
-    if (delta_days <= 1 && delta_days >= 0) {
-        console.log(`Sending notification for task: ${ddl_title} (due in ${delta_days} days)`);
-        const notification = new Notification({
-            title: 'DDL提醒: ' + ddl_title,
-            body: '你的DDL一天内到期啦!'
-        });
-        mainWindow.webContents.send('notification', ddl_title);
-        notification.show();
-    }
-    else if (delta_days < 0) {
-        console.log(`Sending notification for overdue task: ${ddl_title} (overdue by ${Math.abs(delta_days)} days)`);
-        const notification = new Notification({
+    if (msUntilDue <= 0) {
+        console.log(`Sending overdue notification for task: ${ddl_title}`);
+        notification = new Notification({
             title: 'DDL提醒: ' + ddl_title,
             body: '你的DDL已经过期啦!'
         });
+    }
+
+    if (msUntilDue <= oneDayMs && msUntilDue > 0) {
+        console.log(`Sending 1-day notification for task: ${ddl_title}`);
+        notification = new Notification({
+            title: 'DDL提醒: ' + ddl_title,
+            body: '你的DDL一天内到期啦!'
+        });
+    }
+
+    if (msUntilDue <= threeDaysMs && msUntilDue > oneDayMs) {
+        console.log(`Sending 3-day notification for task: ${ddl_title}`);
+        notification = new Notification({
+            title: 'DDL提醒: ' + ddl_title,
+            body: '你的DDL三天内到期啦!'
+        });
+    }
+
+    if (notification) {
         mainWindow.webContents.send('notification', ddl_title);
         notification.show();
     }
-    else {
-        console.log(`Task ${ddl_title} is not due yet (${delta_days} days remaining)`);
-    }
+    return;
 }
 
 // 检查DDL是否到期
@@ -246,9 +251,12 @@ app.whenReady().then(() => {
             console.log('Login state:', isLoggedIn);
             mainWindow.webContents.send('login-status', isLoggedIn);
 
-            // 用户登录成功后，检查DDL任务
+            // 用户登录成功后，检查DDL任务 --> 只在登录时提示一次
             if (isLoggedIn) {
                 checkTasksDue();
+                if(intervalId) {
+                    clearInterval(intervalId); // 清除定时器
+                }
             }
         }).catch(error => {
             console.error('Error checking login state:', error);
