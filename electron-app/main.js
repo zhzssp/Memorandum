@@ -234,6 +234,24 @@ async function getLoginState() {
     }
 }
 
+// 🧩 1️⃣ 先申请单实例锁
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    // 如果已有实例在运行，则退出当前新实例
+    app.quit();
+} else {
+    // 监听第二次实例启动事件
+    app.on('second-instance', (event, argv, workingDirectory) => {
+        // 当用户再次打开应用时，让现有窗口显示出来
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.show();
+            mainWindow.focus();
+        }
+    });
+}
+
 // 当 Electron 初始化完成后调用
 app.whenReady().then(() => {
     // Windows 需要设置 AppUserModelID 才能显示系统通知
