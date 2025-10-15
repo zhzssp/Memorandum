@@ -71,9 +71,9 @@ public class AuthController {
             System.out.println("Is anonymous: " + username.equals("anonymousUser"));
             System.out.println("Authorities: " + authentication.getAuthorities());
             System.out.println("=================================");
-            
-            // return isAuthenticated && !username.equals("anonymousUser");
-            return isAuthenticated;
+
+            return isAuthenticated && !username.equals("anonymousUser");
+            // return isAuthenticated;
         } catch (Exception e) {
             System.out.println("Error in authentication check: " + e.getMessage());
             e.printStackTrace();

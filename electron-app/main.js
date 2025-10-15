@@ -1,5 +1,5 @@
 // ------------------------- 整个客户端的主入口，操控客户端的整体运行逻辑，同时与后端进行交互 -------------------------
-const { app, BrowserWindow, ipcMain, Tray, nativeImage, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, nativeImage, Menu, Notification } = require('electron');
 const path = require('path');
 const axios = require('axios');
 
@@ -140,7 +140,7 @@ function sendDeadlineNotification(ddl_title, deadline) {
             title: 'DDL提醒: ' + ddl_title,
             body: '你的DDL一天内到期啦!'
         });
-
+        mainWindow.webContents.send('notification', ddl_title);
         notification.show();
     }
     else if (delta_days < 0) {
@@ -149,7 +149,7 @@ function sendDeadlineNotification(ddl_title, deadline) {
             title: 'DDL提醒: ' + ddl_title,
             body: '你的DDL已经过期啦!'
         });
-
+        mainWindow.webContents.send('notification', ddl_title);
         notification.show();
     }
     else {
@@ -160,29 +160,17 @@ function sendDeadlineNotification(ddl_title, deadline) {
 // 检查DDL是否到期
 function checkTasksDue() {
     console.log('checkTasksDue called');
-    console.log('Notification permission:', Notification.permission);
-
-    // 如果权限没有被授予，先请求权限
-    if (Notification.permission !== 'granted') {
-        console.log('Requesting notification permission...');
-        Notification.requestPermission().then(permission => {
-            console.log('Permission result:', permission);
-            if (permission === 'granted') {
-                console.log("Notification permission granted");
-                // 权限获得后，继续执行通知的任务
-                performTaskCheck();
-            } else {
-                console.log("Notification permission denied");
-                return; // 如果用户拒绝通知权限，则不继续执行
-            }
-        }).catch(error => {
-            console.error('Error requesting notification permission:', error);
-        });
-    } else {
-        console.log('Notification permission already granted');
-        // 权限已经授予，直接执行检查
-        performTaskCheck();
+    // Electron 主进程的 Notification 不需要浏览器风格的权限请求
+    if (typeof Notification.isSupported === 'function' && !Notification.isSupported()) {
+        mainWindow.webContents.send('grant', 'System notifications are not supported in this environment');
+        return;
     }
+    try {
+        mainWindow.webContents.send('grant', 'Notification ready');
+    } catch (e) {
+        mainWindow.webContents.send('grant', e);
+    }
+    performTaskCheck();
 }
 
 // 执行任务检查的具体逻辑
@@ -243,6 +231,12 @@ async function getLoginState() {
 
 // 当 Electron 初始化完成后调用
 app.whenReady().then(() => {
+    // Windows 需要设置 AppUserModelID 才能显示系统通知
+    try {
+        app.setAppUserModelId('Memorandum');
+    } catch (e) {
+        console.warn('Failed to set AppUserModelID:', e);
+    }
     createTray();
     createWindow();
 
@@ -250,7 +244,7 @@ app.whenReady().then(() => {
     const checkLoginAndDDL = () => {
         getLoginState().then(isLoggedIn => {
             console.log('Login state:', isLoggedIn);
-            mainWindow.webContents.send('log-message', isLoggedIn);
+            mainWindow.webContents.send('login-status', isLoggedIn);
 
             // 用户登录成功后，检查DDL任务
             if (isLoggedIn) {
