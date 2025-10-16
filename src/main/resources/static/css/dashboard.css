@@ -71,3 +71,86 @@ li:hover {
     background: #357abd;
     transform: scale(1.05);
 }
+
+/* 右键菜单样式 */
+.context-menu {
+    position: absolute;
+    display: none;
+    background: white;
+    border: 1px solid #e1e7f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px 0;
+    z-index: 1000;
+    min-width: 120px;
+    animation: contextMenuFadeIn 0.15s ease-out;
+}
+
+@keyframes contextMenuFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.context-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+    color: #34495e;
+}
+
+.context-menu-item:hover {
+    background-color: #f8faff;
+}
+
+.context-menu-item:first-child:hover {
+    background-color: #ffeaea;
+    color: #e74c3c;
+}
+
+.menu-icon {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* 为memo项添加右键提示样式 */
+.memo-item {
+    cursor: context-menu;
+    position: relative;
+}
+
+.memo-item:hover::after {
+    content: "右键删除";
+    position: absolute;
+    top: -25px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0;
+    animation: tooltipFadeIn 0.3s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

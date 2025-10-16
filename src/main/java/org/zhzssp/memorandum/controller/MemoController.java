@@ -85,5 +85,26 @@ public class MemoController {
             return List.of(); // 返回空列表而不是抛出异常
         }
     }
+
+    @DeleteMapping("/memo/delete/{id}")
+    @ResponseBody
+    public String deleteMemo(@PathVariable Long id, Principal principal) {
+        try {
+            User user = userRepository.findByUsername(principal.getName()).orElseThrow();
+            Memo memo = memoRepository.findById(id).orElseThrow();
+            
+            // 确保只有memo的所有者才能删除
+            if (!memo.getUser().getId().equals(user.getId())) {
+                return "error:unauthorized";
+            }
+            
+            memoRepository.delete(memo);
+            return "success";
+        } catch (Exception e) {
+            System.out.println("Error deleting memo: " + e.getMessage());
+            e.printStackTrace();
+            return "error:failed";
+        }
+    }
 }
 

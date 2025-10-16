@@ -2,8 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Your Memos</title>
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <script th:src="@{/js/dashboard.js}"></script>
 </head>
 
 <body>
@@ -12,7 +15,7 @@
 
     <ul>
         <!-- 将接收到的model属性momos, 通过th遍历并展示出来 -->
-        <li th:each="memo : ${memos}">
+        <li th:each="memo : ${memos}" class="memo-item" th:data-memo-id="${memo.id}">
             <span class="title" th:text="${memo.title}"></span>
             <span class="deadline" th:text="${memo.deadline}"></span>
         </li>
@@ -20,5 +23,18 @@
 
     <a href="/memo/add" class="add-btn">＋ Add Memo</a>
 </div>
+
+<!-- 右键菜单 -->
+<div id="contextMenu" class="context-menu">
+    <div class="context-menu-item" id="deleteBtn">
+        <span class="menu-icon">🗑️</span>
+        <span>删除</span>
+    </div>
+    <div class="context-menu-item" id="cancelBtn">
+        <span class="menu-icon">✖️</span>
+        <span>取消</span>
+    </div>
+</div>
+
 </body>
 </html>
