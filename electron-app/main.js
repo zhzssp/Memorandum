@@ -19,7 +19,7 @@ async function getCookiesFromWindow() {
 
             const relevantCookies = cookies
                 .filter(cookie =>
-                    (cookie.domain === 'localhost' || cookie.domain === '127.0.0.1' || cookie.domain === '') &&
+                    (cookie.domain.includes('localhost') || cookie.domain.includes('127.0.0.1') || cookie.domain === '') &&
                     (cookie.name === 'JSESSIONID' || cookie.name.includes('SESSION'))
                 );
 
@@ -41,7 +41,8 @@ async function getCookiesFromWindow() {
 
 let tray = null;
 let mainWindow = null;
-let intervalId = null; // 用于存储 setInterval 的 ID
+let intervalId1 = null; // 用于存储 setInterval 的 ID
+let intervalId2 = null; // 用于存储 setInterval 的 ID
 
 // 创建窗口
 function createWindow() {
@@ -139,7 +140,7 @@ function sendDeadlineNotification(ddl_title, deadline) {
         });
     }
 
-    if (msUntilDue <= oneDayMs && msUntilDue > 0) {
+    else if (msUntilDue <= oneDayMs && msUntilDue > 0) {
         console.log(`Sending 1-day notification for task: ${ddl_title}`);
         notification = new Notification({
             title: 'DDL提醒: ' + ddl_title,
@@ -147,12 +148,16 @@ function sendDeadlineNotification(ddl_title, deadline) {
         });
     }
 
-    if (msUntilDue <= threeDaysMs && msUntilDue > oneDayMs) {
+    else if (msUntilDue <= threeDaysMs && msUntilDue > oneDayMs) {
         console.log(`Sending 3-day notification for task: ${ddl_title}`);
         notification = new Notification({
             title: 'DDL提醒: ' + ddl_title,
             body: '你的DDL三天内到期啦!'
         });
+    }
+
+    else {
+        console.log(`No notification needed for task: ${ddl_title}`);
     }
 
     if (notification) {
@@ -175,13 +180,15 @@ function checkTasksDue() {
     } catch (e) {
         mainWindow.webContents.send('grant', e);
     }
+    // 执行check并通知的具体业务逻辑
     performTaskCheck();
 }
 
 // 执行任务检查的具体逻辑
+let notifiedTasks = new Set(); // 避免重复通知
 async function performTaskCheck() {
     console.log('Checking tasks due...');
-    console.log('Notification permission status:', Notification.permission);
+    // console.log('Notification permission status:', Notification.permission);
 
     try {
         const cookies = await getCookiesFromWindow();
@@ -194,17 +201,23 @@ async function performTaskCheck() {
             } : {}
         });
 
+        // 获取HTTP响应的数据段
         const tasks = response.data;
         console.log(`Found ${tasks.length} tasks:`, tasks);
 
         if (tasks && tasks.length > 0) {
             tasks.forEach(task => {
-                console.log('Processing task:', task);
-                const deadline = new Date(task.deadline);
-                sendDeadlineNotification(task.title, deadline);
+                // 此时是纯json对象，直接访问属性
+                task_id = task.id;
+                if(!notifiedTasks.has(task_id)) {
+                    console.log('Processing task, id = ', task_id);
+                    const deadline = new Date(task.deadline);
+                    notifiedTasks.add(task_id);
+                    sendDeadlineNotification(task.title, deadline);
+                }
             });
         } else {
-            console.log('No tasks found');
+            console.warn('No tasks found');
         }
     } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -234,7 +247,7 @@ async function getLoginState() {
     }
 }
 
-// 🧩 1️⃣ 先申请单实例锁
+// 先申请单实例锁
 const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
@@ -269,12 +282,9 @@ app.whenReady().then(() => {
             console.log('Login state:', isLoggedIn);
             mainWindow.webContents.send('login-status', isLoggedIn);
 
-            // 用户登录成功后，检查DDL任务 --> 只在登录时提示一次
+            // 若用户登录成功，则允许检查DDL任务
             if (isLoggedIn) {
                 checkTasksDue();
-                if(intervalId) {
-                    clearInterval(intervalId); // 清除定时器
-                }
             }
         }).catch(error => {
             console.error('Error checking login state:', error);
@@ -285,7 +295,9 @@ app.whenReady().then(() => {
     checkLoginAndDDL();
 
     // 每30秒检查一次登录状态和DDL
-    intervalId = setInterval(checkLoginAndDDL, 30000);
+    intervalId1 = setInterval(checkLoginAndDDL, 60000);
+    // 每天清理一次已通知任务集合
+    intervalId2 = setInterval(() => notifiedTasks.clear(), 24 * 60 * 60 * 1000);
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -296,8 +308,11 @@ app.whenReady().then(() => {
 
 // 退出应用时清理 setInterval
 app.on('before-quit', () => {
-    if (intervalId) {
-        clearInterval(intervalId); // 清除定时器
+    if (intervalId1) {
+        clearInterval(intervalId1);
+    }
+    if (intervalId2) {
+        clearInterval(intervalId2);
     }
 });
 

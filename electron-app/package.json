@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-packager . --overwrite --platform=win32 --arch=x64 --out=release/ --icon=icon.ico --prune=true",
-    "dist": "electron-builder --prune=true"
+    "dist": "electron-builder"
   },
   "keywords": [],
   "author": "",
