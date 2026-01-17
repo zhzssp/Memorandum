@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(name="memo")
+@Data
 public class Memo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,44 +20,5 @@ public class Memo {
 
     @ManyToOne
     private User user;
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setDeadline(LocalDateTime deadline) {
-        this.deadline = deadline;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public LocalDateTime getDeadline() {
-        return deadline;
-    }
-
-    public User getUser() {
-        return user;
-    }
 }
 

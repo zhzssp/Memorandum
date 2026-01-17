@@ -10,6 +10,8 @@ import org.springframework.ui.Model;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 
+// 没有使用ResponseBody，表示该类的方法返回的是视图名称（模板名称）
+// 若使用ResponseBody / RestController，则表示返回的是封装在HTTP相应之中的JSON数据 --> 格式由converter决定
 @Controller
 public class AuthController {
     @Autowired
@@ -47,6 +49,7 @@ public class AuthController {
     }
 
     @GetMapping("/user-logged-in")
+    // 返回值为数据而非视图名称
     @ResponseBody
     public boolean sendUserLoggedInNotification() {
         try {

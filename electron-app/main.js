@@ -5,7 +5,7 @@ const axios = require('axios');
 
 // 配置axios默认设置
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = 'http://localhost:8080';
+axios.defaults.baseURL = 'http://192.168.93.126:8080';
 
 // 创建一个全局的cookie存储
 let sessionCookies = '';
@@ -19,7 +19,7 @@ async function getCookiesFromWindow() {
 
             const relevantCookies = cookies
                 .filter(cookie =>
-                    (cookie.domain.includes('localhost') || cookie.domain.includes('127.0.0.1') || cookie.domain === '') &&
+                    (cookie.domain.includes('192.168.93.126') || cookie.domain === '') &&
                     (cookie.name === 'JSESSIONID' || cookie.name.includes('SESSION'))
                 );
 
@@ -61,7 +61,7 @@ function createWindow() {
     // 加载 HTML 文件 -- 使用ngrok提供临时域名
     // win.loadURL('https://shella-subpolygonal-linsey.ngrok-free.dev');
     // Spring Boot 后端在 8080 端口运行
-    win.loadURL('http://localhost:8080');
+    win.loadURL('http://192.168.93.126:8080');
     // 绑定主窗口
     mainWindow = win;
     // 打开开发者工具，查看控制台输出 -- 失效?

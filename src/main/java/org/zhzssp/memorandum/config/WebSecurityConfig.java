@@ -31,12 +31,12 @@ public class WebSecurityConfig {
                         .ignoringRequestMatchers("/user-logged-in", "/due-dates")
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/login", "/dashboard", "/css/**", "/user-logged-in", "/due-dates").permitAll() // 允许访问register和login页面
+                        .requestMatchers("/register", "/login", "/dashboard", "/select-features", "/css/**", "/js/**",  "/user-logged-in", "/due-dates").permitAll() // 允许访问register和login页面
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login
                         .loginPage("/login")
-                        .defaultSuccessUrl("/dashboard", true) // 控制登录成功后跳转到dashboard, 同时设置登录状态为true
+                        .defaultSuccessUrl("/select-features", true) // 控制登录成功后跳转到dashboard, 同时设置登录状态为true
                         .permitAll()
                 )
                 .logout(logout -> logout.permitAll());

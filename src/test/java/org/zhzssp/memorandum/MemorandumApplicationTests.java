@@ -8,6 +8,7 @@ class MemorandumApplicationTests {
 
 	@Test
 	void contextLoads() {
+        System.out.println("Context loads successfully.");
 	}
 
 }

@@ -1,18 +1,25 @@
 package org.zhzssp.memorandum.controller;
 
-import org.zhzssp.memorandum.entity.*;
-import org.zhzssp.memorandum.repository.*;
+import org.jetbrains.annotations.NotNull;
+import org.zhzssp.memorandum.entity.Memo;
+import org.zhzssp.memorandum.entity.User;
+import org.zhzssp.memorandum.repository.MemoRepository;
+import org.zhzssp.memorandum.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+import java.util.stream.Collectors;
 
+/**
+ * Handles all memo-related operations and renders dashboard respecting user-selected features.
+ */
 @Controller
 public class MemoController {
 
@@ -23,11 +30,22 @@ public class MemoController {
     private UserRepository userRepository;
 
     @GetMapping("/dashboard")
-    public String dashboard(@NotNull Model model, Principal principal) {
+    public String dashboard(@NotNull Model model,
+                            Principal principal,
+                            jakarta.servlet.http.HttpSession session) {
         User user = userRepository.findByUsername(principal.getName()).orElseThrow();
         List<Memo> memos = memoRepository.findByUser(user);
-        // 将输入的条目添加之后重新渲染
         model.addAttribute("memos", memos);
+
+        java.util.Set<String> selected = FeatureSelectionController.getSelectedFeatures(session);
+        model.addAttribute("selectedFeatures", selected);
+
+        // Prepare upcoming due dates list (within 3 days)
+        java.util.List<Memo> dueSoon = memos.stream()
+                .filter(m -> java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDateTime.now(), m.getDeadline()) <= 3)
+                .collect(java.util.stream.Collectors.toList());
+        model.addAttribute("dueSoonMemos", dueSoon);
+
         return "dashboard";
     }
 
@@ -37,13 +55,14 @@ public class MemoController {
     }
 
     @PostMapping("/memo/add")
-    public String addMemo(@RequestParam String title, @RequestParam String description, @RequestParam String deadline, Principal principal) {
-        // principal对象包含当前登录用户的信息
+    public String addMemo(@RequestParam String title,
+                          @RequestParam String description,
+                          @RequestParam String deadline,
+                          Principal principal) {
         User user = userRepository.findByUsername(principal.getName()).orElseThrow();
         Memo memo = new Memo();
         memo.setTitle(title);
         memo.setDescription(description);
-        // 前端 <input type="datetime-local"> 默认提交格式为 yyyy-MM-dd'T'HH:mm 或 yyyy-MM-dd'T'HH:mm:ss
         DateTimeFormatter formatter = new DateTimeFormatterBuilder()
                 .appendPattern("yyyy-MM-dd'T'HH:mm")
                 .optionalStart()
@@ -58,32 +77,12 @@ public class MemoController {
 
     @GetMapping("/due-dates")
     @ResponseBody
-    public List<Memo> viewDueDates(@NotNull Model model, Principal principal) {
-        try {
-            System.out.println("=== Due Dates Debug Info ===");
-            System.out.println("Principal: " + principal);
-            System.out.println("Principal name: " + (principal != null ? principal.getName() : "null"));
-            
-            if (principal == null) {
-                System.out.println("Principal is null - user not authenticated");
-                return List.of(); // 返回空列表而不是抛出异常
-            }
-            
-            User user = userRepository.findByUsername(principal.getName()).orElseThrow();
-            List<Memo> memos = memoRepository.findByUser(user);
-            
-            System.out.println("Found " + memos.size() + " memos for user: " + user.getUsername());
-            memos.forEach(memo -> {
-                System.out.println("Memo: " + memo.getTitle() + ", Deadline: " + memo.getDeadline());
-            });
-            System.out.println("=============================");
-            
-            return memos;
-        } catch (Exception e) {
-            System.out.println("Error in viewDueDates: " + e.getMessage());
-            e.printStackTrace();
-            return List.of(); // 返回空列表而不是抛出异常
+    public List<Memo> viewDueDates(Principal principal) {
+        if (principal == null) {
+            return List.of();
         }
+        User user = userRepository.findByUsername(principal.getName()).orElseThrow();
+        return memoRepository.findByUser(user);
     }
 
     @DeleteMapping("/memo/delete/{id}")
@@ -92,19 +91,13 @@ public class MemoController {
         try {
             User user = userRepository.findByUsername(principal.getName()).orElseThrow();
             Memo memo = memoRepository.findById(id).orElseThrow();
-            
-            // 确保只有memo的所有者才能删除
             if (!memo.getUser().getId().equals(user.getId())) {
                 return "error:unauthorized";
             }
-            
             memoRepository.delete(memo);
             return "success";
         } catch (Exception e) {
-            System.out.println("Error deleting memo: " + e.getMessage());
-            e.printStackTrace();
             return "error:failed";
         }
     }
 }
-
