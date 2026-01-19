@@ -1,0 +1,52 @@
+/* Filter/Search bar styles */
+.filter-wrapper {
+    margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.filter-wrapper input[type="text"],
+.filter-wrapper input[type="date"] {
+    padding: 10px 14px;
+    border: 1px solid #cfd9e4;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.filter-wrapper input[type="text"]:focus,
+.filter-wrapper input[type="date"]:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+.filter-btn {
+    background: #4a90e2;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.filter-btn:hover {
+    background: #357abd;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 540px) {
+    .filter-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-btn {
+        width: 100%;
+    }
+}

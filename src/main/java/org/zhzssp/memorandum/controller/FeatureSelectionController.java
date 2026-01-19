@@ -6,39 +6,30 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 @Controller
 public class FeatureSelectionController {
 
-    private static final String SESSION_KEY = "selectedFeatures";
+    private static final String SESSION_KEY = "selectedFeature"; // store single string value
 
     @GetMapping("/select-features")
-    public String selectFeaturesPage() {
-        return "selectFeatures"; // render selectFeatures.html
+    public String selectFeaturesPage(jakarta.servlet.http.HttpSession session) {
+        // 若已经选择过功能模式则直接跳转至 dashboard，防止回退再访问
+        if (session.getAttribute(SESSION_KEY) != null) {
+            return "redirect:/dashboard";
+        }
+        return "selectFeatures";
     }
 
     @PostMapping("/select-features")
-    public String saveSelectedFeatures(@RequestParam(name = "selectedFeatures", required = false) List<String> features,
-                                       HttpSession session) {
-        // Ensure non-null and store as a Set for convenience
-        Set<String> featureSet = features != null ? new HashSet<>(features) : new HashSet<>();
-        session.setAttribute(SESSION_KEY, featureSet);
-        // After saving, redirect to dashboard which will respect these settings
+    public String saveSelectedFeature(@RequestParam(name = "selectedFeature", required = false) String feature,
+                                      HttpSession session) {
+        // default to memos if nothing sent
+        session.setAttribute(SESSION_KEY, feature != null ? feature : "memos");
         return "redirect:/dashboard";
     }
 
-    /**
-     * Utility method that other controllers/views can use to fetch the selected feature set from the session.
-     */
-    @SuppressWarnings("unchecked")
-    public static Set<String> getSelectedFeatures(HttpSession session) {
+    public static String getSelectedFeature(HttpSession session) {
         Object obj = session.getAttribute(SESSION_KEY);
-        if (obj instanceof Set) {
-            return (Set<String>) obj;
-        }
-        return new HashSet<>();
+        return obj instanceof String ? (String) obj : "memos";
     }
 }

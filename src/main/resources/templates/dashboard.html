@@ -6,6 +6,7 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Your Dashboard</title>
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/filter.css}">
     <script th:src="@{/js/dashboard.js}"></script>
 </head>
 
@@ -13,22 +14,32 @@
 <div class="container">
     <h2>Your Dashboard</h2>
 
-    <!-- MEMO LIST SECTION -->
-    <div th:if="${selectedFeatures.contains('memos')}">
+    <form th:action="@{/memo/search}" method="get" class="filter-wrapper">
+        <input name="keyword" placeholder="关键字">
+        <input type="date" name="start">
+        <input type="date" name="end">
+        <button type="submit">搜索</button>
+    </form>
+    
+    <!-- MEMOS MODE -->
+    <div th:if="${mode=='memos'}">
         <h3>Your Memos</h3>
         <ul>
-            <!-- 展示memo列表 -->
             <li th:each="memo : ${memos}" class="memo-item" th:data-memo-id="${memo.id}">
-                <span class="title" th:text="${memo.title}"></span>
+                <div>
+                    <span class="title" th:text="${memo.title}"></span>
+                    <br/>
+                    <small th:text="${memo.description}"></small>
+                </div>
                 <span class="deadline" th:text="${memo.deadline}"></span>
             </li>
         </ul>
         <a href="/memo/add" class="add-btn">＋ Add Memo</a>
     </div>
 
-    <!-- UPCOMING DUE DATES SECTION -->
-    <div th:if="${selectedFeatures.contains('dueDates')}">
-        <h3>Upcoming Due Dates</h3>
+    <!-- DUE DATES MODE -->
+    <div th:if="${mode=='dueDates'}">
+        <h3>Upcoming Due Dates (next 3 days)</h3>
         <ul>
             <li th:each="memo : ${dueSoonMemos}">
                 <span th:text="${memo.title}"></span>

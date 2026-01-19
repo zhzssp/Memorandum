@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.zhzssp.memorandum.mapper.MemoMapper">
+
+    <resultMap id="MemoResult" type="org.zhzssp.memorandum.entity.Memo">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="deadline" column="deadline"/>
+        <association property="user" javaType="org.zhzssp.memorandum.entity.User">
+            <id property="id" column="user_id"/>
+        </association>
+    </resultMap>
+
+    <!--找到对应用户的memo列表, 根据关键词和时间范围筛选 -->
+    <select id="searchMemos" resultMap="MemoResult">
+        SELECT * FROM memo
+        <where>
+            user_id = #{userId}
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="startDate!=null">
+                AND deadline &gt;= #{startDate}
+            </if>
+            <if test="endDate!=null">
+                AND deadline &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY deadline DESC
+    </select>
+</mapper>

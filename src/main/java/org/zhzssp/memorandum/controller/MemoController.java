@@ -1,16 +1,19 @@
 package org.zhzssp.memorandum.controller;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
 import org.zhzssp.memorandum.entity.Memo;
 import org.zhzssp.memorandum.entity.User;
 import org.zhzssp.memorandum.repository.MemoRepository;
 import org.zhzssp.memorandum.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.zhzssp.memorandum.service.MemoService;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -29,6 +32,9 @@ public class MemoController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private MemoService memoService;
+
     @GetMapping("/dashboard")
     public String dashboard(@NotNull Model model,
                             Principal principal,
@@ -37,8 +43,8 @@ public class MemoController {
         List<Memo> memos = memoRepository.findByUser(user);
         model.addAttribute("memos", memos);
 
-        java.util.Set<String> selected = FeatureSelectionController.getSelectedFeatures(session);
-        model.addAttribute("selectedFeatures", selected);
+        String mode = FeatureSelectionController.getSelectedFeature(session);
+        model.addAttribute("mode", mode);
 
         // Prepare upcoming due dates list (within 3 days)
         java.util.List<Memo> dueSoon = memos.stream()
@@ -46,6 +52,47 @@ public class MemoController {
                 .collect(java.util.stream.Collectors.toList());
         model.addAttribute("dueSoonMemos", dueSoon);
 
+        return "dashboard";
+    }
+
+    /**
+     * Search endpoint for filtering memos.
+     * If no filter condition is provided, simply redirect back to dashboard without doing anything.
+     */
+    @GetMapping("/memo/search")
+    public String searchMemos(@RequestParam(required = false) String keyword,
+                              @RequestParam(required = false, name = "start") String startDate,
+                              @RequestParam(required = false, name = "end") String endDate,
+                              Principal principal,
+                              Model model,
+                              jakarta.servlet.http.HttpSession session) {
+        // No condition: redirect
+        if (!StringUtils.hasText(keyword) && !StringUtils.hasText(startDate) && !StringUtils.hasText(endDate)) {
+            return "redirect:/dashboard";
+        }
+
+        User user = userRepository.findByUsername(principal.getName()).orElseThrow();
+
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        try {
+            if (StringUtils.hasText(startDate)) {
+                start = LocalDate.parse(startDate, dateFmt).atStartOfDay();
+            }
+            if (StringUtils.hasText(endDate)) {
+                end = LocalDate.parse(endDate, dateFmt).atTime(23, 59, 59);
+            }
+        } catch (Exception e) {
+            // Invalid date format -> ignore filter
+        }
+
+        List<Memo> memos = memoService.searchMemos(user.getId(), keyword, start, end);
+        model.addAttribute("memos", memos);
+        model.addAttribute("mode", "memos");
+
+        // Keep other sections empty / optional
+        model.addAttribute("dueSoonMemos", List.of());
         return "dashboard";
     }
 

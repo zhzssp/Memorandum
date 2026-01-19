@@ -44,7 +44,14 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String loginForm() {
+    public String loginForm(jakarta.servlet.http.HttpSession session) {
+        // 已登录且已选择模式 -> 跳 dashboard
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean loggedIn = auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName());
+        boolean modeChosen = session.getAttribute("selectedFeature") != null;
+        if (loggedIn && modeChosen) {
+            return "redirect:/dashboard";
+        }
         return "login";
     }
 

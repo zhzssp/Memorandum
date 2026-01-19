@@ -4,23 +4,23 @@
     <meta charset="UTF-8">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <title>Select Features</title>
+    <title>Select View Mode</title>
     <link rel="stylesheet" th:href="@{/css/selectFeatures.css}">
 </head>
 <body>
 <div class="container">
-    <h2>Choose Features to Display</h2>
+    <h2>Choose Dashboard Mode</h2>
     <form th:action="@{/select-features}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
         <div class="feature-option">
-            <input type="checkbox" id="memos" name="selectedFeatures" value="memos" checked>
-            <label for="memos">Memos List</label>
+            <input type="radio" id="memos" name="selectedFeature" value="memos" checked>
+            <label for="memos">Memos List (full detail)</label>
         </div>
 
         <div class="feature-option">
-            <input type="checkbox" id="dueDates" name="selectedFeatures" value="dueDates">
-            <label for="dueDates">Upcoming Due Dates</label>
+            <input type="radio" id="dueDates" name="selectedFeature" value="dueDates">
+            <label for="dueDates">Upcoming Due Dates (compact)</label>
         </div>
 
         <button type="submit" class="submit-btn">Continue</button>
