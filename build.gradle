@@ -35,6 +35,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     // Spring Boot Web依赖，包含WebSocket支持
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // 热部署
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
 tasks.named('test') {
